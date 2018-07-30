@@ -8,6 +8,8 @@ describe('Query', () => {
                 .index('id-global-index')
                 .where('id').eq('123')
                 .filter('name').eq('abc')
+                .filter('name').contains('a')
+                .filter('name').contains('b')
                 .filter('age').gte(14)
                 .filter('profile.tags[0]').eq('cool')
                 .select('age')
@@ -20,7 +22,7 @@ describe('Query', () => {
                 Limit: 10,
                 ScanIndexForward: false,
                 KeyConditionExpression: '#id = :id',
-                FilterExpression: '#name = :name AND #age >= :age AND #profile.#tags[0] = :profile_tags_0',
+                FilterExpression: '#name = :name AND contains(#name, :name_contains) AND contains(#name, :name1_contains) AND #age >= :age AND #profile.#tags[0] = :profile_tags_0',
                 ProjectionExpression: '#age',
                 ExpressionAttributeNames: {
                     '#id': 'id',
@@ -32,6 +34,8 @@ describe('Query', () => {
                 ExpressionAttributeValues: {
                     ':id': '123',
                     ':name': 'abc',
+                    ':name1_contains': "b",
+                    ':name_contains': "a",
                     ':age': 14,
                     ':profile_tags_0': 'cool'
                 }
@@ -55,6 +59,19 @@ describe('Query', () => {
             expect(o.KeyConditionExpression).toBe('begins_with(#nickname, :nickname_begins_with) OR #height < :height')
             expect(o.ExpressionAttributeNames).toEqual({ '#nickname': 'nickname', '#height': 'height' })
             expect(o.ExpressionAttributeValues).toEqual({ ':nickname_begins_with': 'a', ':height': 100 })
+        })
+
+        it('where or filter raw', () => {
+          let o = new Query()
+            .whereRaw('begins_with(#nickname, :nickname_val)', { '#nickname': 'nickname' }, { ':nickname_val': 'a' })
+            .where('height').lt(100)
+            .filterRaw('#width <= :width', { '#width': 'width' }, { ':width': 150 })
+            .toJSON()
+
+          expect(o.KeyConditionExpression).toBe('begins_with(#nickname, :nickname_val) AND #height < :height')
+          expect(o.FilterExpression).toBe('#width <= :width')
+          expect(o.ExpressionAttributeNames).toEqual({ '#nickname': 'nickname', '#height': 'height', '#width': 'width' })
+          expect(o.ExpressionAttributeValues).toEqual({ ':nickname_val': 'a', ':height': 100, ':width': 150 })
         })
 
         it('or', () => {
