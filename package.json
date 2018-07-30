@@ -13,8 +13,7 @@
     "test": "jest --coverage --maxWorkers=4",
     "testing": "jest --watch",
     "release": "standard-version",
-    "prepare": "rimraf lib && tsc -p tsconfig.prod.json -d",
-    "prepack": "rimraf lib && tsc -p tsconfig.prod.json -d && rimraf es && tsc -p tsconfig.prod.json -m es2015 --outDir es || echo"
+    "prepare": "rimraf lib && tsc -p tsconfig.prod.json -m es2015 -d"
   },
   "dependencies": {
     "tdv": "~0.4.1",
