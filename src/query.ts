@@ -21,7 +21,8 @@ export class Query<M extends Model, R extends M | M[]> extends MultiReadOperate<
     where<T extends this>(key: string) {
         const { options } = this
         const f = <V>(op: string, op2?: string) => (val?: V) => {
-            const { exprs, names, values } = expression(key)(op, op2)(val)
+            let cn = this.getCount('key', `${key}${op}${op2}`);
+            const { exprs, names, values } = expression(key)(op, op2, cn)(val)
             exprs.forEach(e => options.keyExprs.add(e))
             Object.assign(options.names, names)
             Object.assign(options.values, values)
@@ -38,6 +39,14 @@ export class Query<M extends Model, R extends M | M[]> extends MultiReadOperate<
             between: f<[string, string]>('BETWEEN'),
             begins: f<string>('begins_with'),
         }
+    }
+
+    whereRaw<T extends this>(expr: string, attrs: { [key: string]: string }, values: { [key: string]: any }) {
+        const { options } = this
+        options.keyExprs.add(expr)
+        Object.assign(options.names, attrs)
+        Object.assign(options.values, values)
+        return this as T
     }
 
     one() {

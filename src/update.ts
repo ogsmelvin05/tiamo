@@ -33,7 +33,8 @@ export class Update<M extends Model> extends ConditionWriteOperate<M> {
                 val = null
             }
 
-            const { exprs, names, values } = expression(key)(op, op2)(val)
+            let cn = this.getCount('set', `${key}${op}${op2}`);
+            const { exprs, names, values } = expression(key)(op, op2, cn)(val)
             exprs.forEach(e => options.setExprs.add(e))
             Object.assign(options.names, names)
             Object.assign(options.values, values)
@@ -53,7 +54,8 @@ export class Update<M extends Model> extends ConditionWriteOperate<M> {
     remove(...keys: string[]) {
         const { options } = this
         keys.forEach(key => {
-            const { exprs, names, values } = expression(key)('REMOVE')()
+            let cn = this.getCount('remove', `${key}`);
+            const { exprs, names, values } = expression(key)('REMOVE', undefined, cn)()
             exprs.forEach(e => options.removeExprs.add(e))
             Object.assign(options.names, names)
             Object.assign(options.values, values)
@@ -64,7 +66,8 @@ export class Update<M extends Model> extends ConditionWriteOperate<M> {
 
     add(key: string, val: number | DocumentClient.DynamoDbSet | Set<number | string | DocumentClient.binaryType>) {
         const { options } = this
-        const { exprs, names, values } = expression(key)('ADD')(val)
+        let cn = this.getCount('add', `${key}`);
+        const { exprs, names, values } = expression(key)('ADD', undefined, cn)(val)
         exprs.forEach(e => options.addExprs.add(e))
         Object.assign(options.names, names)
         Object.assign(options.values, values)
@@ -74,7 +77,8 @@ export class Update<M extends Model> extends ConditionWriteOperate<M> {
 
     delete(key: string, val: DocumentClient.DynamoDbSet | Set<number | string | DocumentClient.binaryType>) {
         const { options } = this
-        const { exprs, names, values } = expression(key)('DELETE')(val)
+        let cn = this.getCount('delete', `${key}`);
+        const { exprs, names, values } = expression(key)('DELETE', undefined, cn)(val)
         exprs.forEach(e => options.deleteExprs.add(e))
         Object.assign(options.names, names)
         Object.assign(options.values, values)

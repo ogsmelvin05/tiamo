@@ -79,6 +79,16 @@ export class Operate<M extends Model> {
         return this.toJSON()
     }
 
+    protected getCount(type: 'key' | 'filter' | 'set' | 'remove' | 'add' | 'delete', key: string) {
+        if (!this.options[`${type}ExprsCount`]) this.options[`${type}ExprsCount`] = {};
+        if (!this.options[`${type}ExprsCount`][key]) this.options[`${type}ExprsCount`][key] = 0;
+
+        let cn = this.options[`${type}ExprsCount`][key];
+        this.options[`${type}ExprsCount`][key]++;
+
+        return cn ? cn : '';
+    }
+
     toJSON() {
         const { options } = this
         const { logic, leaf, keyExprs, filterExprs, setExprs, removeExprs, addExprs, deleteExprs, condExprs, projExprs, names, values } = options
@@ -175,7 +185,8 @@ export class MultiReadOperate<M extends Model> extends ReadOperate<M> {
     filter<T extends this>(key: string) {
         const { options } = this
         const f = <V>(op: string, op2?: string) => (val?: V) => {
-            const { exprs, names, values } = expression(key)(op, op2)(val)
+            let cn = this.getCount('filter', `${key}${op}${op2}`);
+            const { exprs, names, values } = expression(key)(op, op2, cn)(val)
             exprs.forEach(e => options.filterExprs.add(e))
             Object.assign(options.names, names)
             Object.assign(options.values, values)
@@ -203,6 +214,14 @@ export class MultiReadOperate<M extends Model> extends ReadOperate<M> {
             contains: f<string>('contains'),
             size: compare<number>('size'),
         }
+    }
+
+    filterRaw<T extends this>(expr: string, attrs: { [key: string]: string }, values: { [key: string]: any }) {
+        const { options } = this
+        options.filterExprs.add(expr)
+        Object.assign(options.names, attrs)
+        Object.assign(options.values, values)
+        return this as T
     }
 
     or(func: (operate: this) => any) {
@@ -248,7 +267,8 @@ export class ConditionWriteOperate<M extends Model> extends WriteOperate<M> {
     where<T extends this>(key: string) {
         const { options } = this
         const f = <V>(op: string, op2?: string) => (val?: V) => {
-            const { exprs, names, values } = expression(key)(op, op2)(val)
+            let cn = this.getCount('key', `${key}${op}${op2}`);
+            const { exprs, names, values } = expression(key)(op, op2, cn)(val)
             exprs.forEach(e => options.condExprs.add(e))
             Object.assign(options.names, names)
             Object.assign(options.values, values)
@@ -276,6 +296,14 @@ export class ConditionWriteOperate<M extends Model> extends WriteOperate<M> {
             contains: f<string>('contains'),
             size: compare<number>('size'),
         }
+    }
+
+    whereRaw<T extends this>(expr: string, attrs: { [key: string]: string }, values: { [key: string]: any }) {
+        const { options } = this
+        options.condExprs.add(expr)
+        Object.assign(options.names, attrs)
+        Object.assign(options.values, values)
+        return this as T
     }
 
     or(func: (operate: this) => any) {
@@ -335,6 +363,20 @@ export interface OperateOptions<M extends Model> extends
     condExprs?: Set<string>
     /** ProjectionExpression in get query scan batchGet */
     projExprs?: Set<string>
+
+    /** KeyConditionExpression in query count map */
+    keyExprsCount?: { [key: string]: number }
+    /** KeyConditionExpression in query scan count map */
+    filterExprsCount?: { [key: string]: number }
+    /** UpdateExpression `SET` in update count map */
+    setExprsCount?: { [key: string]: number }
+    /** UpdateExpression `REMOVE` in update count map */
+    removeExprsCount?: { [key: string]: number }
+    /** UpdateExpression `ADD` in update count map */
+    addExprsCount?: { [key: string]: number }
+    /** UpdateExpression `DELETE` in update count map */
+    deleteExprsCount?: { [key: string]: number }
+
     /** ExpressionAttributeNames in all */
     names?: { [name: string]: string }
     /** ExpressionAttributeValues in query scan update put delete */

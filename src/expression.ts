@@ -2,7 +2,7 @@ import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 
 export const { createSet } = DocumentClient.prototype
 
-export const expression = (key: string) => <T>(op?: string, op2?: string) => (val?: T) => {
+export const expression = (key: string) => <T>(op?: string, op2?: string, cn?: string) => (val?: T) => {
     const data: ExpressionData = {
         exprs: [],
         names: {},
@@ -21,7 +21,7 @@ export const expression = (key: string) => <T>(op?: string, op2?: string) => (va
     // then sign is #user.#pets[3].#age
     const sign = keys.map(k => `#${k}`).join('.')
     // and colon is :user_pets_3_age
-    const colon = ':' + key.replace(/\.|\[/g, '_').replace(/\]/g, '')
+    const colon = `:${key.replace(/\.|\[/g, '_').replace(/\]/g, '')}${cn || ''}`;
     // names become { '#user': 'user', '#pets': 'pets', '#age': 'age' }
     keys.forEach(k => {
         const p = k.replace(/\[\d+\]/g, '')
