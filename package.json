@@ -13,25 +13,26 @@
     "test": "jest --coverage --maxWorkers=4",
     "testing": "jest --watch",
     "release": "standard-version",
+    "prepare": "rimraf lib && tsc -p tsconfig.prod.json -d",
     "prepack": "rimraf lib && tsc -p tsconfig.prod.json -d && rimraf es && tsc -p tsconfig.prod.json -m es2015 --outDir es || echo"
   },
   "dependencies": {
-    "tdv": "^0.4.1",
-    "tslib": "^1.9.2"
+    "tdv": "~0.4.1",
+    "tslib": "~1.9.3"
   },
   "devDependencies": {
-    "@types/jest": "^23.0.0",
-    "@types/joi": "^13.0.8",
-    "@types/node": "^10.3.1",
-    "aws-sdk": "^2.218.1",
-    "dynalite": "^1.2.0",
-    "jest": "^23.1.0",
+    "@types/jest": "~23.0.0",
+    "@types/joi": "~13.0.8",
+    "@types/node": "~10.3.1",
+    "aws-sdk": "~2.218.1",
+    "dynalite": "~2.0.0",
+    "jest": "~23.1.0",
     "joi": "12",
-    "rimraf": "^2.6.2",
-    "standard-version": "^4.4.0",
-    "test-listen": "^1.1.0",
-    "ts-jest": "^22.4.6",
-    "typescript": "^2.9.1"
+    "rimraf": "~2.6.2",
+    "standard-version": "~4.4.0",
+    "test-listen": "~1.1.0",
+    "ts-jest": "~22.4.6",
+    "typescript": "~2.9.1"
   },
   "peerDependencies": {
     "aws-sdk": "*"
